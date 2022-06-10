@@ -1,0 +1,19 @@
+# misc
+.DS_Store
+.idea
+.vscode
+.nova
+
+# dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# builds
+dist
+
+# tests
+coverage
+
+# logs
+*.log*

@@ -1,0 +1,49 @@
+{
+  "name": "adler",
+  "version": "1.0.0",
+  "description": "Automate v3 Data Hook setup",
+  "main": "src/index.ts",
+  "author": "@hansjhoffman",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.x"
+  },
+  "scripts": {
+    "build": "make build",
+    "compile": "make compile",
+    "format": "make format",
+    "format:ts": "make format-ts",
+    "lint": "make lint",
+    "lint:fix": "make lint-fix",
+    "prepare": "is-ci || husky install",
+    "test": "make test"
+  },
+  "dependencies": {
+    "axios": "^0.27.2",
+    "fp-ts": "^2.12.1",
+    "io-ts": "^2.2.16",
+    "ts-pattern": "^4.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^16.11.39",
+    "@types/nova-editor-node": "^4.1.4",
+    "@typescript-eslint/eslint-plugin": "^5.13.0",
+    "@typescript-eslint/parser": "^5.13.0",
+    "esbuild": "^0.14.23",
+    "eslint": "^8.10.0",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-prettier": "^4.0.0",
+    "husky": "^8.0.1",
+    "is-ci": "^3.0.1",
+    "jest": "^28.1.1",
+    "lint-staged": "^13.0.1",
+    "prettier": "^2.5.1",
+    "typescript": "^4.6.2"
+  },
+  "lint-staged": {
+    "src/**/*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  }
+}
