@@ -5,14 +5,22 @@ import * as Api from "./api";
 import { Env } from "./types";
 
 const main = async () => {
-  const env: Env = {
-    accessKeyId: process.env.FLATFILE_ACCESS_KEY_ID || "",
-    apiHost: process.env.FLATFILE_API_HOST || "",
-    secretAccessKey: process.env.FLATFILE_SECRET_ACCESS_KEY || "",
-  };
+  try {
+    const env: Env = {
+      accessKeyId: process.env.FLATFILE_ACCESS_KEY_ID || "",
+      apiHost: process.env.FLATFILE_API_HOST || "",
+      secretAccessKey: process.env.FLATFILE_SECRET_ACCESS_KEY || "",
+    };
 
-  const token = await pipe(RTE.run(Api.createToken(), env));
-  console.log(token);
+    if (env.accessKeyId === "" || env.secretAccessKey === "") {
+      throw "Ensure both FLATFILE_ACCESS_KEY_ID and FLATFILE_SECRET_ACCESS_KEY env vars are set";
+    }
+
+    const token = await pipe(RTE.run(Api.createToken(), env));
+    console.log(token);
+  } catch (err) {
+    console.error(`Error: ${err}!`);
+  }
 };
 
 main();
