@@ -4,9 +4,10 @@ import * as O from "fp-ts/Option";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/function";
+import gql from "graphql-tag";
 
 import { Env } from "./types";
-import { AuthResponseDecoder } from "./codec";
+import * as Codecs from "./codec";
 
 export const createToken = (): RTE.ReaderTaskEither<Env, unknown, O.Option<string>> => {
   return pipe(
@@ -29,11 +30,11 @@ export const createToken = (): RTE.ReaderTaskEither<Env, unknown, O.Option<strin
         ),
       );
     }),
-    RTE.map(({ data }) => {
+    RTE.map((response) => {
       return pipe(
-        AuthResponseDecoder.decode(data),
+        Codecs.AuthResponseDecoder.decode(response.data),
         E.map((decoded) => decoded.accessToken),
-        O.fromEither,
+        O.fromEither, //not sure this should be an Option
       );
     }),
   );
@@ -46,3 +47,42 @@ export const createToken = (): RTE.ReaderTaskEither<Env, unknown, O.Option<strin
 // }
 
 export const getUserId = (email: string) => {};
+
+export const changeTeamName =
+  (teamId: string, teamName: string) =>
+  (accessToken: string): RTE.ReaderTaskEither<Env, unknown, void> => {
+    return pipe(
+      RTE.ask<Env>(),
+      RTE.chain((env) => {
+        return RTE.fromTaskEither(
+          TE.tryCatch(
+            () => {
+              return axios({
+                method: "POST",
+                url: `${env.apiHost}/graphql`,
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                },
+                data: gql`
+                  mutation ChangeTeamName {
+                    editTeam(input: { id: teamId, name: teamName }) {
+                      id
+                      name
+                    }
+                  }
+                `,
+              });
+            },
+            (reason) => reason,
+          ),
+        );
+      }),
+      RTE.map((response) => {
+        const decoded = Codecs.ChangeTeamResponseDecoder.decode(response.data);
+
+        if (E.isRight(decoded)) {
+          return;
+        }
+      }),
+    );
+  };

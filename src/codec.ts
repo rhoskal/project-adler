@@ -15,3 +15,8 @@ export const AuthResponseDecoder = D.struct({
     updatedAt: D.string,
   }),
 });
+
+export const ChangeTeamResponseDecoder = D.struct({
+  id: D.string,
+  name: D.string,
+});
