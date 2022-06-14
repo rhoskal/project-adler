@@ -78,10 +78,6 @@ const main = async () => {
     const tokenPromise = Api.createToken()(env);
     const token = await tokenPromise();
 
-    if (E.isLeft(token)) {
-      throw "Failed to create token";
-    }
-
     pipe(
       token,
       E.match(
