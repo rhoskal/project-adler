@@ -7,9 +7,10 @@ import { pipe } from "fp-ts/function";
 import gql from "graphql-tag";
 
 import { Env } from "./types";
-import * as Codecs from "./codec";
+import * as Decoder from "./decoder";
 
-export const createToken = (): RTE.ReaderTaskEither<Env, unknown, O.Option<string>> => {
+// export const createToken = (): RTE.ReaderTaskEither<Env, unknown, string> => {
+export const createToken = () => {
   return pipe(
     RTE.ask<Env>(),
     RTE.chain((env) => {
@@ -22,7 +23,6 @@ export const createToken = (): RTE.ReaderTaskEither<Env, unknown, O.Option<strin
               data: {
                 accessKeyId: env.accessKeyId,
                 secretAccessKey: env.secretAccessKey,
-                expiresIn: 43200,
               },
             });
           },
@@ -30,21 +30,23 @@ export const createToken = (): RTE.ReaderTaskEither<Env, unknown, O.Option<strin
         ),
       );
     }),
-    RTE.map((response) => {
-      return pipe(
-        Codecs.AuthResponseDecoder.decode(response.data),
-        E.map((decoded) => decoded.accessToken),
-        O.fromEither, //not sure this should be an Option
+    // RTE.map((response) => {
+    //   return pipe(
+    //     Decoder.AuthResponse.decode(response.data),
+    //     E.map((decoded) => decoded.accessToken),
+    //     // E.getOrElse(() => ""),
+    //   );
+    // }),
+    RTE.chainW((response) => {
+      return RTE.fromEither(
+        pipe(
+          Decoder.AuthResponse.decode(response.data),
+          E.map((decoded) => decoded.accessToken),
+        ),
       );
     }),
   );
 };
-
-// {
-//     "statusCode": 401,
-//     "message": "Access key id or secret provided is not valid",
-//     "error": "Unauthorized"
-// }
 
 export const getUserId = (email: string) => {};
 
@@ -78,7 +80,7 @@ export const changeTeamName =
         );
       }),
       RTE.map((response) => {
-        const decoded = Codecs.ChangeTeamResponseDecoder.decode(response.data);
+        const decoded = Decoder.ChangeTeamResponse.decode(response.data);
 
         if (E.isRight(decoded)) {
           return;
@@ -86,3 +88,56 @@ export const changeTeamName =
       }),
     );
   };
+
+export const createTemplate = (
+  teamId: string,
+  templateName: string,
+  schema: unknown,
+): RTE.ReaderTaskEither<Env, unknown, { id: string; name: string }> => {
+  const graphqlQuery = {
+    query: `
+      mutation CreateTemplate($name: String!, $teamId: ID!, $schema: JsonSchemaDto) {
+        createSchema(name: $name, teamId: $teamId, jsonSchema: $schema) {
+          id
+          name
+        }
+      }
+    `,
+    variables: {
+      teamId,
+      name: templateName,
+      schema,
+    },
+  };
+
+  return pipe(
+    RTE.ask<Env>(),
+    RTE.chain((env) => {
+      return RTE.fromTaskEither(
+        TE.tryCatch(
+          () => {
+            return axios({
+              method: "POST",
+              url: `https://${env.apiHost}/graphql`,
+              headers: {
+                Authorization: `Bearer ${env.accessToken}`,
+              },
+              data: graphqlQuery,
+            });
+          },
+          (reason) => reason,
+        ),
+      );
+    }),
+    RTE.chainW((response) => {
+      const axiosResponse = response.data;
+
+      return RTE.fromEither(
+        pipe(
+          Decoder.CreateTemplateResponse.decode(axiosResponse.data.createSchema),
+          E.map((decoded) => decoded),
+        ),
+      );
+    }),
+  );
+};

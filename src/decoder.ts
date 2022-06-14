@@ -1,6 +1,6 @@
 import * as D from "io-ts/Decoder";
 
-export const AuthResponseDecoder = D.struct({
+export const AuthResponse = D.struct({
   accessToken: D.string,
   user: D.struct({
     id: D.number,
@@ -16,7 +16,12 @@ export const AuthResponseDecoder = D.struct({
   }),
 });
 
-export const ChangeTeamResponseDecoder = D.struct({
+export const ChangeTeamResponse = D.struct({
+  id: D.string,
+  name: D.string,
+});
+
+export const CreateTemplateResponse = D.struct({
   id: D.string,
   name: D.string,
 });
