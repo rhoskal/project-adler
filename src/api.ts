@@ -1,16 +1,13 @@
 import axios from "axios";
 import * as E from "fp-ts/Either";
-import * as O from "fp-ts/Option";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/function";
-import gql from "graphql-tag";
 
 import { Env } from "./types";
 import * as Decoder from "./decoder";
 
-// export const createToken = (): RTE.ReaderTaskEither<Env, unknown, string> => {
-export const createToken = () => {
+export const createToken = (): RTE.ReaderTaskEither<Env, unknown, string> => {
   return pipe(
     RTE.ask<Env>(),
     RTE.chain((env) => {
@@ -30,13 +27,6 @@ export const createToken = () => {
         ),
       );
     }),
-    // RTE.map((response) => {
-    //   return pipe(
-    //     Decoder.AuthResponse.decode(response.data),
-    //     E.map((decoded) => decoded.accessToken),
-    //     // E.getOrElse(() => ""),
-    //   );
-    // }),
     RTE.chainW((response) => {
       return RTE.fromEither(
         pipe(
@@ -50,44 +40,58 @@ export const createToken = () => {
 
 export const getUserId = (email: string) => {};
 
-export const changeTeamName =
-  (teamId: string, teamName: string) =>
-  (accessToken: string): RTE.ReaderTaskEither<Env, unknown, void> => {
-    return pipe(
-      RTE.ask<Env>(),
-      RTE.chain((env) => {
-        return RTE.fromTaskEither(
-          TE.tryCatch(
-            () => {
-              return axios({
-                method: "POST",
-                url: `${env.apiHost}/graphql`,
-                headers: {
-                  Authorization: `Bearer ${accessToken}`,
-                },
-                data: gql`
-                  mutation ChangeTeamName {
-                    editTeam(input: { id: teamId, name: teamName }) {
-                      id
-                      name
-                    }
-                  }
-                `,
-              });
-            },
-            (reason) => reason,
-          ),
-        );
-      }),
-      RTE.map((response) => {
-        const decoded = Decoder.ChangeTeamResponse.decode(response.data);
-
-        if (E.isRight(decoded)) {
-          return;
+export const changeTeamName = (
+  teamId: string,
+  teamName: string,
+): RTE.ReaderTaskEither<Env, unknown, { id: string; name: string }> => {
+  const graphqlQuery = {
+    query: `
+      mutation ChangeTeamName {
+        editTeam(input: { id: teamId, name: teamName }) {
+          id
+          name
         }
-      }),
-    );
+      }
+    `,
+    variables: {
+      input: {
+        id: teamId,
+        name: teamName,
+      },
+    },
   };
+
+  return pipe(
+    RTE.ask<Env>(),
+    RTE.chain((env) => {
+      return RTE.fromTaskEither(
+        TE.tryCatch(
+          () => {
+            return axios({
+              method: "POST",
+              url: `${env.apiHost}/graphql`,
+              headers: {
+                Authorization: `Bearer ${env.accessToken}`,
+              },
+              data: graphqlQuery,
+            });
+          },
+          (reason) => reason,
+        ),
+      );
+    }),
+    RTE.chainW((response) => {
+      const axiosResponse = response.data;
+
+      return RTE.fromEither(
+        pipe(
+          Decoder.ChangeTeamResponse.decode(axiosResponse.data.editTeam),
+          E.map((decoded) => decoded),
+        ),
+      );
+    }),
+  );
+};
 
 export const createTemplate = (
   teamId: string,
