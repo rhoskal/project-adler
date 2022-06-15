@@ -25,3 +25,11 @@ export const CreateTemplateResponse = D.struct({
   id: D.string,
   name: D.string,
 });
+
+export const CreateDataHookResponse = D.string;
+
+export const UpdateDataHookResponse = D.struct({
+  id: D.string,
+  name: D.string,
+  code: D.string,
+});
