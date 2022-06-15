@@ -3,3 +3,4 @@ use nix
 export FLATFILE_ACCESS_KEY_ID=some_value
 export FLATFILE_API_HOST=some_value
 export FLATFILE_SECRET_ACCESS_KEY=some_value
+export FLATFILE_TEAM_ID=some_value

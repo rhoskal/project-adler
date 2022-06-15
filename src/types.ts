@@ -3,6 +3,7 @@ export type Env = {
   apiHost: Readonly<string>;
   secretAccessKey: Readonly<string>;
   accessToken: Readonly<string>;
+  teamId: Readonly<string>;
 };
 
 export type GqlQuery = {

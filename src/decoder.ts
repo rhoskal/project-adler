@@ -16,20 +16,25 @@ export const AuthResponse = D.struct({
   }),
 });
 
-export const ChangeTeamResponse = D.struct({
-  id: D.string,
-  name: D.string,
-});
-
 export const CreateTemplateResponse = D.struct({
   id: D.string,
   name: D.string,
 });
 
-export const CreateDataHookResponse = D.string;
+export type Template = D.TypeOf<typeof CreateTemplateResponse>;
+
+export const CreateDataHookResponse = D.struct({
+  id: D.string,
+});
+
+export type EmptyHook = D.TypeOf<typeof CreateDataHookResponse>;
 
 export const UpdateDataHookResponse = D.struct({
   id: D.string,
   name: D.string,
+  description: D.string,
+  // packageJSON: D.record(D.string),
   code: D.string,
 });
+
+export type Hook = D.TypeOf<typeof UpdateDataHookResponse>;
