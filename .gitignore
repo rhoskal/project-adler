@@ -17,3 +17,6 @@ coverage
 
 # logs
 *.log*
+
+# env
+.envrc
