@@ -2,7 +2,7 @@ import axios from "axios";
 import * as E from "fp-ts/Either";
 import * as RTE from "fp-ts/ReaderTaskEither";
 import * as TE from "fp-ts/TaskEither";
-import { pipe, constant } from "fp-ts/function";
+import { constant, pipe } from "fp-ts/function";
 
 import { Env, GqlQuery } from "./types";
 import * as Decoder from "./decoder";
