@@ -10,13 +10,13 @@
   },
   "scripts": {
     "build": "make build",
+    "clean": "make clean",
     "compile": "make compile",
     "format": "make format",
-    "format:ts": "make format-ts",
     "lint": "make lint",
     "lint:fix": "make lint-fix",
     "prepare": "is-ci || husky install",
-    "test": "make test"
+    "run": "make run"
   },
   "dependencies": {
     "axios": "^0.27.2",
